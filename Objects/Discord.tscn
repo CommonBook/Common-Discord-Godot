@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b313i62hjvba8"]
+
+[ext_resource type="Script" uid="uid://eqn16iworwsi" path="res://addons/common-discord/Scripts/DiscordBot.gd" id="1_703gh"]
+
+[node name="DiscordBot" type="Node" unique_id=8534349]
+script = ExtResource("1_703gh")
