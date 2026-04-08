@@ -16,7 +16,8 @@ class_name Discord_Bot extends Node
 ## NOTE: Compiled apps may still have this token exposed. Use this method only for testing. 
 ## Research token obfuscation to find alternatives and edit this script. Do NOT publish any
 ## code containing an un-obfuscated discord token.
-@onready var TOKEN = FileAccess.open("user://BOT_TOKEN.txt", FileAccess.READ).get_as_text().strip_edges()
+@onready var TOKEN = FileAccess.open("user://BOT_TOKEN.txt", FileAccess.READ).get_as_text().strip_edges() if FileAccess.file_exists("user://BOT_TOKEN.txt") else ""
+var userAgent = "GodotDiscordBot"
 
 ## Each API call starts with this url string. v10 is untested, but might still work.
 const BASE_URL : String = "https://discord.com/api/v9"
@@ -24,9 +25,9 @@ const BASE_URL : String = "https://discord.com/api/v9"
 ## These headers are passed along with the http request to inform discord who you are.
 ## Feel free to change [param User-Agent]. 
 @onready var headers : PackedStringArray = ([
-	"Authorization: Bot " + TOKEN,
+	"Authorization: Bot %s" % TOKEN,
 	"Content-Type: application/json",
-	"User-Agent: GodotDiscordBot"
+	"User-Agent: %s" % userAgent
 ])
 
 func _ready() -> void:
@@ -38,6 +39,8 @@ func send_dm(content : String, userID : String) -> void:
 	var dm_channel = await Discord_Channel.get_user_channel_from_id(userID)
 	send_message(content, dm_channel)
 
+## @deprecated 
+## Replaced by the [Discord_Message]'s [method send]. [br]
 ## Sends a message in a specified channel on discord.
 ## [param Content] is the message body. The channel is a [Discord_Channel] with a valid
 ## chanel ID.
@@ -55,6 +58,9 @@ func send_message(content : String, channel : Discord_Channel) -> void:
 	print(err)
 	await bot_request.request_completed # Wait until request is completed
 	bot_request.call_deferred("queue_free")
+
+func send_message_attachment(message : Discord_Message, channel : Discord_Channel):
+	pass
 
 ## Creates a channel in a discord server given the server's guild ID.
 ## Returns a reference to the channel it creates.
