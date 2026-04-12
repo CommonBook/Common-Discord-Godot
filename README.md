@@ -8,7 +8,7 @@ A simple GDScript wrapper of the Discord HTTP API. <br>
 There are other projects out there, so why this one? <br>
 Well, they didn't meet my needs. That's all. This is being developed alongside a private project, so any features that needs are prioritized first. 
 <br><br>
-This project is set apart by it's [b]object-oriented[/b] approach. The core is a singleton, but most operations are scripted using various objects with unique methods.
+This project is set apart by it's **object-oriented** approach. The core is a singleton, but most operations are scripted using various objects with unique methods.
 
 ```
 func _ready() -> void:
