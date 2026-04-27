@@ -16,8 +16,8 @@ class_name Discord_Message extends Resource
 ## func _ready() -> void:
 ## 	var message = Discord_Message.create_message()
 ## 
-## message.set_message_text("This is a message.")
-## message.add_attachment("res://icon.png")
+## 	message.set_message_text("This is a message.")
+## 	message.add_attachment("res://icon.png")
 ## [/codeblock]
 ## Then send it with [method send].
 ## [codeblock]
