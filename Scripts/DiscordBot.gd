@@ -37,6 +37,8 @@ var BASE_URL : String = "https://discord.com/api/v%s" % API_VER
 	"User-Agent: %s" % userAgent
 ])
 
+signal operation_complete
+
 func _update_headers() -> void:
 	headers.clear()
 	
@@ -108,7 +110,9 @@ func send_message_attachment(message : Discord_Message, channel : Discord_Channe
 ## [/codeblock][br]
 ## By default, this returns the body of the request response, but [param full_response] will cause 
 ## the output to include the full response. 
-func discord_get(url_extension : Variant, ID : Variant, full_response : bool = false) -> Dictionary:
+## The full response will be output regardless if the request fails.[br]
+## Typically returns a dictionary, but may return an [Array] if that is what the response body contains.
+func discord_get(url_extension : Variant, ID : Variant, full_response : bool = false):
 	if typeof(url_extension) != typeof(ID):
 		push_error("Invalid type. Both parameters must match types")
 		return {}
@@ -126,11 +130,13 @@ func discord_get(url_extension : Variant, ID : Variant, full_response : bool = f
 			# API/extention_1/ID_1/extension_2/ID_2/...
 			get_url = Discord.BASE_URL + "/"
 			var i = 0
-			while i < url_extension.size() or i < ID.size():
-				if not i > url_extension.size():
+			while i < url_extension.size() or i < ID.size()-1:
+				if not i > url_extension.size()-1:
 					get_url = get_url + url_extension[i] + "/"
-				if not i > ID.size():
+				if not i > ID.size()-1:
 					get_url = get_url + ID[i] + "/"
+				i+=1
+			get_url = get_url.rstrip("/")
 	
 	var err = bot_request.request(get_url, Discord.headers, HTTPClient.METHOD_GET)
 	var result = await bot_request.request_completed
@@ -139,6 +145,10 @@ func discord_get(url_extension : Variant, ID : Variant, full_response : bool = f
 	
 	if err != Error.OK:
 		push_error("GET failed: " + error_string(err))
+		return result
+	# result[1] is the response code.
+	if result[1] != 200 and result[1] != 201:
+		Discord.response_code_error(result[1])
 		return result
 	
 	return JSON.parse_string(result[3].get_string_from_utf8()) if not full_response else result

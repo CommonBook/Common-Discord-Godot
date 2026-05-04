@@ -15,6 +15,9 @@ class_name Discord_Channel extends Resource
 ## No need to apply it. It will return an object that stands in for that channel unless it fails. 
 ## It can be modified using a variety of non-static methods.
 
+const CHANNEL_TYPE_TEXT : int = 0
+const CHANNEL_TYPE_CATEGORY : int = 4
+
 ## ID of this channel if it exists.
 var channel_id : String
 ## ID of the server this channel exists in.
@@ -133,12 +136,15 @@ func set_channel_position(new_position : int) -> void:
 	bot_request.call_deferred("queue_free")
 
 ## Get the message history of a channel.
-## Returns an array of the last 100 messages in this channel as [Discord_Message]s
-func get_channel_messages(channelID : String = self.channel_id) -> Array:
+## Returns an array of the last messages in this channel as [Discord_Message]s up to [param limit]
+## messages. The limit tops out at 100 because of Discord api limitations.
+func get_channel_messages(channelID : String = self.channel_id, limit : int = 100) -> Array:
+	limit = min(limit, 100)
+	
 	# Create a new HTTPRequest for handling this exchange
 	var bot_request : HTTPRequest = HTTPRequest.new()
 	# URL extenstion for retrieving messages (with a limit of 100)
-	var message_url = Discord.BASE_URL+"/channels/%s/messages?limit=100"
+	var message_url = Discord.BASE_URL+("/channels/%s/messages?limit=%s" % limit)
 	
 	var err = bot_request.request(message_url % channelID, Discord.headers, HTTPClient.METHOD_GET)
 	if err != Error.OK:
@@ -164,25 +170,16 @@ func get_channel_messages(channelID : String = self.channel_id) -> Array:
 ## Get a reference for a particular channel using its channel ID as a parameter.
 ## Static coroutine. Call with await.
 static func get_channel_from_id(channelID : String) -> Discord_Channel:
-	# Create a new HTTPRequest for handling this exchange
-	var bot_request : HTTPRequest = HTTPRequest.new()
-	Discord.add_child(bot_request)
+	var details = await Discord.discord_get("channels", channelID)
 	
-	var channels_url = Discord.BASE_URL+"/channels/%s"
+	# Catch errors. Error responses become arrays, but channels are always a dictionary.
+	if details is Array:
+		var info = JSON.parse_string(details[3].get_string_from_utf8())
+		if info.has("message") and info.has("code"):
+			push_error(info["message"] + " | Code: " + info["code"])
 	
-	var err = bot_request.request(channels_url % channelID, Discord.headers, HTTPClient.METHOD_GET)
-	
-	var result = await bot_request.request_completed
-	bot_request.call_deferred("queue_free")
-	
-	if err != Error.OK:
-		push_error("Failed fetching channel: " + str(err))
-		print("Unable to get channel details using ID")
-		return
-	
-	var details = JSON.parse_string(result[3].get_string_from_utf8())
-	
-	return Discord_Channel.new(details)
+	var channel = Discord_Channel.new(details)
+	return channel
 
 ## Gets a [Discord_Chanel] used for direct messaging a user by using their user ID.
 ## [Discord_Channel]s constructed with this method are unnamed and have an empty guild id. 
