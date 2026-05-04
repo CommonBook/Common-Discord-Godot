@@ -122,10 +122,10 @@ func set_channel_position(new_position : int) -> void:
 	
 	# Prepare payload
 	var patch_url = Discord.BASE_URL+"/guilds/%s/channels" % self.guild_id
-	var payload = {
+	var payload = [{
 		"id":self.channel_id,
 		"position":new_position
-	}
+	}]
 	
 	var err = bot_request.request(patch_url, Discord.headers, HTTPClient.METHOD_PATCH, JSON.stringify(payload))
 	if err != Error.OK:
