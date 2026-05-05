@@ -32,7 +32,8 @@ There is no getting started page, but the in-engine documentation is fairly soun
 - ✅️ Read messages
 - ✅️ Get channels
 - ✅️ Create channels
-- ❌️ Delete channels 🚧
+- ✅️ Delete channels
+- ❌️ Manage permissions 🚧
 - ❌️ Create Embeds 🚧
 - ❌️ Edit messages 🚧
 - ❌️ Delete messages 🚧
