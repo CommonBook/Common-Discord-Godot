@@ -83,6 +83,25 @@ func send_message(content : String, channel : Discord_Channel) -> void:
 func send_message_attachment(message : Discord_Message, channel : Discord_Channel):
 	pass
 
+func _url_determine(url_extension : Variant, ID : Variant) -> String:
+	var get_url : String = ""
+	match typeof(url_extension):
+		TYPE_STRING:
+			# API/extension/ID
+			get_url = Discord.BASE_URL+"/%s/%s" % [url_extension, ID]
+		TYPE_ARRAY:
+			# API/extention_1/ID_1/extension_2/ID_2/...
+			get_url = Discord.BASE_URL + "/"
+			var i = 0
+			while i < url_extension.size() or i < ID.size()-1:
+				if not i > url_extension.size()-1:
+					get_url = get_url + url_extension[i] + "/"
+				if not i > ID.size()-1:
+					get_url = get_url + ID[i] + "/"
+				i+=1
+			get_url = get_url.rstrip("/")
+	return get_url
+
 ## Takes a unique URL extension and an ID and makes a get request to Discord. Returns the raw object
 ## from Discord. [br]
 ## [param url_extension] and [param ID] can be a [String] or an [Array] of strings.
@@ -121,22 +140,7 @@ func discord_get(url_extension : Variant, ID : Variant, full_response : bool = f
 	var bot_request : HTTPRequest = HTTPRequest.new()
 	Discord.add_child(bot_request)
 	
-	var get_url : String = ""
-	match typeof(url_extension):
-		TYPE_STRING:
-			# API/extension/ID
-			get_url = Discord.BASE_URL+"/%s/%s" % [url_extension, ID]
-		TYPE_ARRAY:
-			# API/extention_1/ID_1/extension_2/ID_2/...
-			get_url = Discord.BASE_URL + "/"
-			var i = 0
-			while i < url_extension.size() or i < ID.size()-1:
-				if not i > url_extension.size()-1:
-					get_url = get_url + url_extension[i] + "/"
-				if not i > ID.size()-1:
-					get_url = get_url + ID[i] + "/"
-				i+=1
-			get_url = get_url.rstrip("/")
+	var get_url = _url_determine(url_extension, ID)
 	
 	var err = bot_request.request(get_url, Discord.headers, HTTPClient.METHOD_GET)
 	var result = await bot_request.request_completed
@@ -145,6 +149,61 @@ func discord_get(url_extension : Variant, ID : Variant, full_response : bool = f
 	
 	if err != Error.OK:
 		push_error("GET failed: " + error_string(err))
+		return result
+	# result[1] is the response code.
+	if result[1] != 200 and result[1] != 201:
+		Discord.response_code_error(result[1])
+		return result
+	
+	return JSON.parse_string(result[3].get_string_from_utf8()) if not full_response else result
+
+func discord_put(url_extension : Variant, ID : Variant, payload : Dictionary, full_response : bool = false):
+	if typeof(url_extension) != typeof(ID):
+		push_error("Invalid type. Both parameters must match types")
+		return {}
+	
+	# Create a new HTTPRequest for handling this exchange
+	var bot_request : HTTPRequest = HTTPRequest.new()
+	Discord.add_child(bot_request)
+	
+	var get_url = _url_determine(url_extension, ID)
+	
+	var err = bot_request.request(get_url, Discord.headers, HTTPClient.METHOD_PUT, JSON.stringify(payload))
+	var result = await bot_request.request_completed
+	
+	bot_request.call_deferred("queue_free")
+	
+	if err != Error.OK:
+		push_error("PUT failed: " + error_string(err))
+		return result
+	# result[1] is the response code.
+	if result[1] != 200 and result[1] != 204:
+		Discord.response_code_error(result[1])
+		return result
+	
+	if result[1] != 204: 
+		return JSON.parse_string(result[3].get_string_from_utf8()) if not full_response else result
+	elif result[1] == 204:
+		return
+
+func discord_delete(url_extension : Variant, ID : Variant, full_response : bool = false):
+	if typeof(url_extension) != typeof(ID):
+		push_error("Invalid type. Both parameters must match types")
+		return {}
+	
+	# Create a new HTTPRequest for handling this exchange
+	var bot_request : HTTPRequest = HTTPRequest.new()
+	Discord.add_child(bot_request)
+	
+	var get_url = _url_determine(url_extension, ID)
+	
+	var err = bot_request.request(get_url, Discord.headers, HTTPClient.METHOD_DELETE)
+	var result = await bot_request.request_completed
+	
+	bot_request.call_deferred("queue_free")
+	
+	if err != Error.OK:
+		push_error("DELETE failed: " + error_string(err))
 		return result
 	# result[1] is the response code.
 	if result[1] != 200 and result[1] != 201:
