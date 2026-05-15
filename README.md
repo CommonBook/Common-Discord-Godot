@@ -33,13 +33,13 @@ There is no getting started page, but the in-engine documentation is fairly soun
 - ✅️ Get channels
 - ✅️ Create channels
 - ✅️ Delete channels
-- ❌️ Manage permissions 🚧
+- ✅️ Manage permissions 🚧
 - ❌️ Create Embeds 🚧
 - ❌️ Edit messages 🚧
 - ❌️ Delete messages 🚧
 - ❌️ Reply to messages 🚧
 - ❌️ Event loop
-- ❌️ Threads functionality
+- ❌️ Threads
 - ❌️ Create polls
 - ❌️ Slash commands
 - ❌️ Make you a cake
