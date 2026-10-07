@@ -314,6 +314,15 @@ static func get_channel_from_id(channelID : String) -> Discord_Channel:
 	var channel = Discord_Channel.new(details)
 	return channel
 
+func get_message(message_id : String) -> Discord_Message:
+	var response = await Discord.discord_get(["channels","messages"],[self.channel_id,message_id])
+	if response is Dictionary and response == {}:
+		print("Failed to retrieve channel message: " + message_id)
+		return null
+	
+	var message : Discord_Message = Discord_Message.new(response)
+	return message
+
 ## Gets a [Discord_Chanel] used for direct messaging a user by using their user ID.
 ## [Discord_Channel]s constructed with this method are unnamed and have an empty guild id. 
 ## Static coroutine. Call with await.

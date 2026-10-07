@@ -64,10 +64,11 @@ func get_channels_in_guild_raw(full_response : bool = false) -> Variant:
 static func get_guild_by_id(guildID : String) -> Discord_Guild:
 	var details = await Discord.discord_get("guilds", guildID)
 	
-	if details != {} and typeof(details) != TYPE_ARRAY:
+	if typeof(details) != TYPE_ARRAY and details != {}:
 		return Discord_Guild.new(details)
 	else:
 		# If the response failed.
+		print(details[3].get_string_from_utf8())
 		return
 
 func _on_request_complete(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
